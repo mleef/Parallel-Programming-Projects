@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <stdlib.h>
 #include <tbb/tbb.h>
 #include <pthread.h>
 #include <time.h>

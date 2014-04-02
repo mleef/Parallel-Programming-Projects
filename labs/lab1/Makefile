@@ -5,7 +5,7 @@ make_cilk: cilkWorld.c
 	icc -o cilkWorld cilkWorld.c -lcilkrts
 
 make_tbb: tbbWorld.cpp
-	icpc -o tbbWorld cilkWorld.c -lcilkrts
+	icpc -o tbbWorld tbbWorld.cpp -ltbb
 
 all: make_mp make_cilk make_tbb
 
