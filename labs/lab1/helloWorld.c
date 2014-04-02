@@ -11,7 +11,7 @@ int main()
   for(i=0;i<NUM_ITERS;i++)
   {
     int foo=omp_get_thread_num();
-    printf("Alien #%d says hello, they're  #%d in line.\n",foo,i);
+    printf("Alien #%d says hello, and that they're  #%d in line.\n",foo,i);
     sleep(1);
   }
 }
