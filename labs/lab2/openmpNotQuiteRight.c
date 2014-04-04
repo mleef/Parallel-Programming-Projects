@@ -8,8 +8,14 @@ void init(int* a, int size)
     a[i]=i;
   }
 }
+
+
+
+
 int main()
 {
+
+
    srand(time(NULL));
    int i=0;
    int* a=(int*)malloc(sizeof(int)*ARRAYSIZE);
@@ -18,10 +24,12 @@ int main()
    //intended behavior   : a[i] gets the sum of its value and its right neighbor's value.
    //observed behavior   : Not the intended behavior at all. Oops.
    //If only we had some developers to fix this for us.
-   #pragma omp parallel for
+   #pragma omp parallel for ordered
    for(i=1;i<=ARRAYSIZE;i++)
    {
+      #pragma omp ordered
       a[i]=a[i]+a[((i-1)%ARRAYSIZE)];
+
    }
    
    for(i=0;i<ARRAYSIZE;i++)
