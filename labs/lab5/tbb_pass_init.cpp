@@ -6,6 +6,30 @@
 
 const char* chars="0123456789";
 
+
+
+
+class parallel_main{
+	public:
+		char* a;
+		parallel_main(char* arg1){a = arg1;} 
+			void operator()(const blocked_range<int>& r) const {
+				int i = 0;
+				for(int i = r.begin(); i!= r.end(); i++) {
+						
+				}
+			}
+		
+};
+
+
+
+
+
+
+
+
+
 // tests if a hash matches a candidate password
 int test(const char* passhash, const char* passcandidate) {
     unsigned char digest[MD5_DIGEST_LENGTH];

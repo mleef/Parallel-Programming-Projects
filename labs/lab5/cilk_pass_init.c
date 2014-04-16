@@ -43,7 +43,7 @@ int main(int argc, char** argv) {
     long currpass=0;
     int notfound=1;
     int i = 0;
-    int limit=100000000;
+    int limit=1000;
     cilk_for(i = 0; i < limit; i++) {
         genpass(currpass,passmatch);
         notfound=test(argv[1], passmatch);
