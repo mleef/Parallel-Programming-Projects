@@ -39,16 +39,22 @@ int main(int argc, char** argv) {
         printf("Usage: %s <password hash>\n",argv[0]);
         return 1;
     }
-    char passmatch[9];
+
+   
+    char result[9];
     long currpass=0;
     int notfound=1;
     int i = 0;
-    int limit=1000;
+    int limit=100000000;
+
     cilk_for(i = 0; i < limit; i++) {
-        genpass(currpass,passmatch);
-        notfound=test(argv[1], passmatch);
-        currpass++;
+	char passmatch[9];
+        genpass(i,passmatch);
+        // printf("%s\n",passmatch);
+	if(!test(argv[1], passmatch)) {
+		genpass(i,result);
+	}	
 }
-    printf("found: %s\n",passmatch);
+    printf("found: %s\n",result);
     return 0;
 }

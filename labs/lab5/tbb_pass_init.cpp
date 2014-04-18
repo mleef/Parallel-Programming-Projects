@@ -14,9 +14,15 @@ class parallel_main{
 		char* a;
 		parallel_main(char* arg1){a = arg1;} 
 			void operator()(const blocked_range<int>& r) const {
-				int i = 0;
 				for(int i = r.begin(); i!= r.end(); i++) {
-						
+					char passmatch[9];
+        				genpass(i,passmatch);
+        				if(!test(argv[1], passmatch) {
+					
+					}	
+   				}
+
+    				printf("found: %s\n",passmatch);						
 				}
 			}
 		
@@ -69,11 +75,5 @@ int main(int argc, char** argv) {
     int limit = 100000000;
     int i = 0;
 
-    for(i = 0; i < limit; i++) {
-        genpass(currpass,passmatch);
-        notfound=test(argv[1], passmatch);
-        currpass++;
-    }
-    printf("found: %s\n",passmatch);
     return 0;
 }

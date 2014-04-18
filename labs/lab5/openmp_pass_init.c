@@ -39,19 +39,20 @@ int main(int argc, char** argv) {
         printf("Usage: %s <password hash>\n",argv[0]);
         return 1;
     }
-    char passmatch[9];
-    long currpass=0;
     int notfound=1;
     int limit = 100000000;
     int i = 0;
-
+    char result[9];
 
     #pragma omp parallel for
     for(i = 0; i < limit; i++) {
-        genpass(currpass,passmatch);
-        notfound=test(argv[1], passmatch);
-        currpass++;
+	char passmatch[9];
+        genpass(i,passmatch);
+        if(!test(argv[1], passmatch)) {
+		genpass(i, result);
+	}
     }
-    printf("found: %s\n",passmatch);
+
+    printf("found: %s\n",result);
     return 0;
 }
