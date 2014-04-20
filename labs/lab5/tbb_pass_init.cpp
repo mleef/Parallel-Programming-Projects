@@ -5,32 +5,7 @@
 #include <openssl/md5.h>
 
 const char* chars="0123456789";
-
-
-
-
-class parallel_main{
-	public:
-		char* a;
-		parallel_main(char* arg1){a = arg1;} 
-			void operator()(const blocked_range<int>& r) const {
-				for(int i = r.begin(); i!= r.end(); i++) {
-					char passmatch[9];
-        				genpass(i,passmatch);
-        				if(!test(argv[1], passmatch) {
-					
-					}	
-   				}
-
-    				printf("found: %s\n",passmatch);						
-				}
-			}
-		
-};
-
-
-
-
+using namespace tbb; 
 
 
 
@@ -64,6 +39,29 @@ void genpass(long passnum, char* passbuff) {
     }
 }
 
+char result[9];
+class parallel_main {
+      public:
+                char* a;
+		char *answer;
+                parallel_main(char* arg1, char *str ){
+			a = arg1;
+			answer = str;
+		 }
+                        void operator()(const blocked_range<int>& r) const {
+                                char result[9];
+                                for(int i = r.begin(); i!= r.end(); i++) {
+                                        char passmatch[9];
+                                        genpass(i,passmatch);
+                                        if(!test(a, passmatch)) {
+                                                genpass(i, answer);
+                                        }
+                                }                    
+                 }
+};
+
+
+
 int main(int argc, char** argv) {
     if(argc != 2) {
         printf("Usage: %s <password hash>\n",argv[0]);
@@ -74,6 +72,12 @@ int main(int argc, char** argv) {
     int notfound=1;
     int limit = 100000000;
     int i = 0;
+    char result[9];
+    char *str = result;
+
+
+    parallel_for(blocked_range<int>(0, limit), parallel_main(argv[1], str)); 
+    printf("found: %s\n",result);
 
     return 0;
 }

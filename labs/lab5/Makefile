@@ -12,7 +12,7 @@ pass_init: pass_init.c
 	icc -std=c99 -o pass_init pass_init.c -lcrypto
 
 clean:
-	rm *.o pass_init
+	rm pass_init cilk_pass_init tbb_pass_init openmp_pass_init
 
 
 
