@@ -6,8 +6,9 @@
 #include "key.h"
 #include <stdio.h>
 #include <string.h>
-#include <omp.h>
+#include <tbb/tbb.h>
 #include <sys/stat.h>
+using namespace tbb; 
 
 // utility function: given a list of keys, a list of files to pull them from, 
 // and the number of keys -> pull the keys out of the files, allocating memory 
@@ -20,17 +21,52 @@ void getKeys(xorKey* keyList, char** fileList, int numKeys)
      readKey(&(keyList[keyLoop]), fileList[keyLoop]);
   }
 }
+
+class parallel_main {
+      public:
+		
+                xorKey* list;
+		int loop;
+		char ciChar;
+		char* cyText;  
+		char* pText;
+                parallel_main(xorKey* a, int b, char* d, char* e) {
+			list = a;
+			loop = b;
+			cyText = d;
+			pText = e;
+			ciChar = pText[loop];
+		}
+
+		parallel_main( parallel_main& p, split) {
+			ciChar = 0;
+		}
+
+		void join( parallel_main& res) {
+			ciChar = ciChar ^ res.ciChar;
+		}
+
+
+                void operator()(const blocked_range<int>& r) const {
+             
+                                for(int i = r.begin(); i!= r.end(); i++) {
+                               		ciChar = ciChar ^ getBit(&(list[i]),loop);	
+                                }
+				cyText[loop]=ciChar;
+  	           
+                 }
+};
+
+
+
+
 //Given text, a list of keys, the length of the text, and the number of keys, encodes the text
 void encode(char* plainText, char* cypherText, xorKey* keyList, int ptextlen, int numKeys) {
   int keyLoop=0;
   int charLoop=0;
   for(charLoop=0;charLoop<ptextlen;charLoop++) {
-    char cipherChar=plainText[charLoop]; 
-
-    for(keyLoop=0;keyLoop<numKeys;keyLoop++) {
-       cipherChar=cipherChar ^ getBit(&(keyList[keyLoop]),charLoop);
-    }
-    cypherText[charLoop]=cipherChar;
+    parallel_main p(keyList,charLoop, cypherText, plainText ); 
+    parallel_reduce(blocked_range<int>(0, numKeys), p);
   }
 }
 

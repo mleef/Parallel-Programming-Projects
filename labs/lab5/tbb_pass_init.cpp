@@ -39,7 +39,6 @@ void genpass(long passnum, char* passbuff) {
     }
 }
 
-char result[9];
 class parallel_main {
       public:
                 char* a;
@@ -49,7 +48,7 @@ class parallel_main {
 			answer = str;
 		 }
                         void operator()(const blocked_range<int>& r) const {
-                                char result[9];
+                          
                                 for(int i = r.begin(); i!= r.end(); i++) {
                                         char passmatch[9];
                                         genpass(i,passmatch);
@@ -67,11 +66,8 @@ int main(int argc, char** argv) {
         printf("Usage: %s <password hash>\n",argv[0]);
         return 1;
     }
-    char passmatch[9];
-    long currpass=0;
-    int notfound=1;
+    
     int limit = 100000000;
-    int i = 0;
     char result[9];
     char *str = result;
 

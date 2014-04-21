@@ -26,6 +26,7 @@ void encode(char* plainText, char* cypherText, xorKey* keyList, int ptextlen, in
   for(charLoop=0;charLoop<ptextlen;charLoop++) {
     char cipherChar=plainText[charLoop]; 
     for(keyLoop=0;keyLoop<numKeys;keyLoop++) {
+       printf("%c\n", cipherChar);
        cipherChar=cipherChar ^ getBit(&(keyList[keyLoop]),charLoop);
     }
     cypherText[charLoop]=cipherChar;
