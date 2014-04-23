@@ -48,11 +48,12 @@ class parallel_main {
 
 
                 void operator()(const blocked_range<int>& r) const {
-                	char tempChar = ciChar;
+                
                 	for(int i = r.begin(); i!= r.end(); i++) {
-                        	tempChar = tempChar ^ getBit((&list[i]),loop); 	
+                        	//ciChar = ciChar ^ getBit((&list[i]),loop);
+				ciChar = 'a'; 	
                         }
-				cyText[loop] = tempChar;
+				cyText[loop] = ciChar;
   	           
                  }
 };
