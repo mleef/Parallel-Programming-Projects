@@ -1,1 +1,32 @@
-This should be replaced by a description of the data reorganization you chose to implement and its effectiveness. Your description can be short, but should address the change made and why you expected a performance improvement. You should also include performance metrics to support wether runtime improved or not.
+My data reorganization consisted of creating a transpose of the second input matrix. Because of this reorganization, the input data is read horizontally instead of vertically, allowing the array to fit better into the cache. This coupled with an OMP parallel for loop improved performance by about 20% as shown below.
+
+
+matmul_serial output:
+
+Order 1000 multiplication in 0.598392 seconds 
+Order 1000 multiplication at 3342.290618 mflops
+
+ Hey, it worked
+ all done 
+
+real	0m0.608s
+user	0m0.596s
+sys	0m0.006s
+
+
+matmul_improved output:
+
+Order 1000 multiplication in 0.301150 seconds 
+Order 1000 multiplication at 6641.212115 mflops
+
+ Hey, it worked
+ all done 
+
+real	0m0.413s
+user	0m1.123s
+sys	0m0.016s
+
+
+
+
+

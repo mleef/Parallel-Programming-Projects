@@ -24,6 +24,7 @@
 
 double A[N][P];
 double B[P][M];
+double Btrans[M][P];
 double C[N][M];
 
 // Initialize the matrices (uniform values to make an easier check)
@@ -44,9 +45,9 @@ void matrix_init(void) {
 		}
 	}
 
-	// C[N][M] -- result matrix for AB
-	for (i=0; i<N; i++) {
-		for (j=0; j<M; j++) {
+	// C[M][P] -- result matrix for AB
+	for (i=0; i<M; i++) {
+		for (j=0; j<P; j++) {
 			C[i][j] = 0.0;
 		}
 	}
@@ -54,68 +55,31 @@ void matrix_init(void) {
 
 // The actual mulitplication function, totally naive
 double matrix_multiply(void) {
-	int i, j, k;
 	double start, end;
+	int i, j, k;
 
 	// timer for the start of the computation
 	// Reorganize the data but do not start multiplying elements before 
+	// Btrans[N][M] -- transpose of matrix B
+	for (i=0; i<N; i++) {
+		for (j=0; j<M; j++) {
+			Btrans[i][j] = B[j][i];
+		}
+	}
+
+
+
+
 	// the timer value is captured.
 	start = omp_get_wtime(); 
-
-	int a;
-
-#pragma omp parallel for
-for(a = 0; a < 4; a++) {
-int result;
-	
-	if(a == 0) {
-
-	for (i=0; i<N/2; i++){
-		for (j=0; j<M/2; j++){
+	#pragma omp parallel for shared(A,B,C) private(i,j,k)	
+	for (i =0; i<N; i++){
+		for (j=0; j<M; j++){
 			for(k=0; k<P; k++){
-				C[i][j] += A[i][k] * B[k][j];
+				C[i][j] += A[i][k] * Btrans[j][k];
 			}
 		}
 	}
-	}
-
-	if(a == 1) {
-
-	for (i=N/2; i<N; i++){
-		for (j=0; j<M/2; j++){
-			for(k=0; k<P; k++){
-				C[i][j] += A[i][k] * B[k][j];
-			}
-		}
-	}
-	}
-
-	if(a == 2) {
-
-	for (i=0; i<N/2; i++){
-		for (j=M/2; j<M; j++){
-			for(k=0; k<P; k++){
-				C[i][j] += A[i][k] * B[k][j];
-			}
-		}
-	}
-
-	}
-
-
-	if(a == 3) {
-
-	for (i=N/2; i<N; i++){
-		for (j=M/2; j<M; j++){
-			for(k=0; k<P; k++){
-				C[i][j] += A[i][k] * B[k][j];
-			}
-		}
-	}
-
-	}
-
-}
 
 	// timer for the end of the computation
 	end = omp_get_wtime();

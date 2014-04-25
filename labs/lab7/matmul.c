@@ -54,15 +54,16 @@ void matrix_init(void) {
 
 // The actual mulitplication function, totally naive
 double matrix_multiply(void) {
-	int i, j, k;
 	double start, end;
+	int i, j, k;
 
 	// timer for the start of the computation
 	// Reorganize the data but do not start multiplying elements before 
 	// the timer value is captured.
 	start = omp_get_wtime(); 
-
-	for (i=0; i<N; i++){
+	
+	
+	for (i =0; i<N; i++){
 		for (j=0; j<M; j++){
 			for(k=0; k<P; k++){
 				C[i][j] += A[i][k] * B[k][j];
