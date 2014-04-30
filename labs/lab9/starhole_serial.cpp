@@ -22,26 +22,6 @@ static int* outArea;
 static int radius;
 static int sim_steps;
 
-// Initializes needed data structures
-void initialize(int radius) {
-    int rows = 2*radius+1;
-    int cols = 2*radius+1;
-    
-    outArea = (int*)calloc(rows*cols,sizeof(int));
-    splitProb = (double*)malloc(sizeof(double)*rows*cols);
-    area = (DirUpdate*)malloc(sizeof(DirUpdate)*rows*cols);
-    
-    for(int i=-radius;i<radius+1;i++) {
-        for(int j=-radius;j<radius+1;j++) {
-            int offset = toOffset(i,j,radius);
-            // pack split prob -- i,j
-            splitProb[offset] = computeSplitProb(i,j,radius);
-            // pack dir update -- i,j
-            computeDirProb(i,j,radius,&(area[offset]));
-        }
-    }
-}
-
 // Returns the total number of particles descending from this call
 // and increments the count at the right location
 int walker(long int seed, int x, int y, int stepsremaining) {
@@ -75,47 +55,13 @@ int main(int argc, char** argv) {
     }
 
     printf("Attempting to setup initial state...\n");
+    // Initialize simulation Params
+    int* coords;
+    int coordPairs, amount;
+    readArgs(argc, argv, &sim_steps, &radius, &amount, &coordPairs, &coords);
     
-    char* endptr;
-    endptr = argv[1];
-    sim_steps = (unsigned)strtol(argv[1],&endptr,10);
-    if(*endptr != NULL || sim_steps < 0) {
-        printf("Steps must be a positive integer\n");
-        return 1;
-    }
-    endptr=argv[2];
-    radius = (unsigned int)strtol(argv[2],&endptr,10);
-    if(*endptr != NULL || radius>5000 || radius < 1) {
-        printf("Radius must be a positive integer less than 5000\n");
-        return 1;
-    }
-    
-    endptr = argv[3];
-    int amount = (int)strtol(argv[3],&endptr,10);
-    if(*endptr != NULL || amount>10000 || amount < 1) {
-        printf("Amount must be a positive integer less than 10000\n");
-        return 1;
-    }
-
-    int coordPairs = (argc-4)/2;    
-    int coords[coordPairs*2];
-    for(int i=0; i<argc-4; i+=2) {
-        endptr = argv[i+4];
-        coords[i] = (int)strtol(argv[i+4],&endptr,10);
-        if(*endptr != NULL ) {
-            printf("Coordinate must fit in radius.");
-            return 1;
-        }
-        endptr = argv[i+5];
-        coords[i+1] = (int)strtol(argv[i+5],&endptr,10);
-        if(*endptr != NULL || dist(coords[i],coords[i+1])>radius) {
-            printf("Coordinate must fit in radius.");
-            return 1;
-        }
-    }
-    
-    // Initialize simulation params
-    initialize(radius);
+    // Initialize simulation lookups
+    initialize(radius,&outArea,&splitProb,&area);
     
     
     // Start initial walks
@@ -129,42 +75,9 @@ int main(int argc, char** argv) {
     printf("Walks complete... finished with %d particles\n",totParticles);
    
     // Generate the output
-    int rows = radius*2+1;
-    int cols = radius*2+1;
- 
-    // find the cell with the most
-    int max=0;
-    for(int i=0;i<rows*cols; i++) {
-        if(outArea[i]>max) {
-            max=outArea[i];
-        }
-    }
-    // Generate the output image
-    printf("Mat out(%d, %d, %d)\n",radius*2+1, radius*2+1,CV_8UC3);
-    Mat out(rows, cols, CV_8UC3);
-    for(int i=0;i<radius*2+1;i++) {
-        for(int j=0;j<radius*2+1;j++) {
-            const size_t offset = i + (j*(radius*2+1));
-            // paint the ring
-            double ring=0.0;
-            if(dist(i-radius,j-radius)<=radius) {
-               ring = 1.0;
-            }
-            double intensity = sqrt((double)outArea[offset]/(double)max);
+    writeOutput(radius, outArea);
 
-            if(intensity>0) {
-            out.at<Vec3b>(i, j) = Vec3b(floor(intensity * 255.0),
-                                        floor(intensity * 255.0),
-                                        floor(intensity * 255.0));
-            } else {
-            out.at<Vec3b>(i, j) = Vec3b(floor(0 * 255.0),
-                                        floor(0 * 255.0),
-                                        floor(ring * 128.0));
-            }
-        }
-    }
-    imwrite("out.jpg", out);
-
+    free(coords);
     free(outArea);
     free(splitProb);
     free(area);
