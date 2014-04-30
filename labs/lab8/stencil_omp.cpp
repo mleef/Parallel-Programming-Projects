@@ -75,7 +75,7 @@ void gaussian_kernel(const int rows, const int cols, const double stddev, double
 			sum += value;
 		}
 	}
-	// Normalize
+	// Normalize	
 	const double recip_sum = 1.0 / sum;
 	#pragma omp parallel for
 	for(int i = 0; i < rows; ++i) {
@@ -108,6 +108,52 @@ void apply_stencil(const int radius, const double stddev, const int rows, const 
 		}
 	}
 }
+
+
+
+void apply_prewitt_stencil(const int rows, const int cols, pixel * const in, pixel * const out) {
+	const int radius = 1;
+	const int dim = radius*2+1;
+	double kernelX[dim*dim];
+	double kernelY[dim*dim];
+	
+	prewittX_kernel(3, 3, kernelX);
+	prewittY_kernel(3, 3, kernelY);
+
+	#pragma omp parallel for
+	for(int i = 0; i < rows; ++i) {
+		for(int j = 0; j < cols; ++j) {
+			const int out_offset = i + (j*rows);
+			double intenseX = 0;
+			double intenseY = 0;
+
+			for(int x = i - radius, kx = 0; x <= i + radius; ++x, ++kx) {
+				for(int y = j - radius, ky = 0; y <= j + radius; ++y, ++ky) {
+					if(x >= 0 && x < rows && y >= 0 && y < cols) {
+						const int in_offset = x + (y*rows);
+						const int k_offset = kx + (ky*dim);
+						
+						intenseX += kernelX[k_offset] * (in[in_offset].red + in[in_offset].green + in[in_offset].blue) / 3;
+						intenseY += kernelY[k_offset] * (in[in_offset].red + in[in_offset].green + in[in_offset].blue) / 3;
+					}
+				}
+			}
+			
+			double result = sqrt(intenseX * intenseX + intenseY * intenseY);
+			out[out_offset].red = result;
+			out[out_offset].green = result;
+			out[out_offset].blue = result;
+		}
+	}
+}
+
+
+
+
+
+
+
+
 
 int main( int argc, char* argv[] ) {
 
@@ -143,8 +189,19 @@ int main( int argc, char* argv[] ) {
 		outPixels[i].blue = 0.0;
 	}
 	
-	// Do the stencil
-	apply_stencil(3, 32.0, rows, cols, imagePixels, outPixels);
+	pixel * out2 = (pixel *) malloc(rows * cols * sizeof(pixel));
+	for(int i = 0; i < rows * cols; ++i) {
+		out2[i].red = 0.0;
+		out2[i].green = 0.0;
+		out2[i].blue = 0.0;
+	}
+	
+	
+	apply_stencil(3, 32.0, rows, cols, imagePixels, out2);
+	apply_prewitt_stencil(rows, cols, out2, outPixels);	
+
+
+
 	
 	// Create an output image (same size as input)
 	Mat dest(rows, cols, CV_8UC3);
@@ -163,5 +220,6 @@ int main( int argc, char* argv[] ) {
 	
 	free(imagePixels);
 	free(outPixels);
+	free(out2);
 	return 0;
 }
