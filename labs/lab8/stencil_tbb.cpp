@@ -83,6 +83,56 @@ void gaussian_kernel(const int rows, const int cols, const double stddev, double
 	}
 }
 
+class parallel_stencil {
+      public:
+                int dim;
+		int radius;
+		double stddev;
+		int rows;
+		int cols;
+		pixel * in;
+		pixel *out;
+		double kernel[9];
+
+                parallel_stencil(int radius1, double stddev1, int rows1, int cols1, pixel * const in1, pixel * const out1, double kernel1[]) {
+			dim = radius1 * 2 + 1;			
+			kernel = kernel1; 
+			radius = radius1;
+			stddev = stddev1;
+			rows = rows1;
+			cols = cols1;
+			in = in1;
+			out = out1;
+		 }
+                        void operator()(const tbb::blocked_range<int>& r) const {
+                  
+                             for(int i = r.begin(); i!= r.end(); i++) {
+ 				for(int j = 0; j < cols; ++j) {
+				const int out_offset = i + (j*rows);
+				for(int x = i - radius, kx = 0; x <= i + radius; ++x, ++kx) {
+					for(int y = j - radius, ky = 0; y <= j + radius; ++y, ++ky) {
+					if(x >= 0 && x < rows && y >= 0 && y < cols) {
+						const int in_offset = x + (y*rows);
+						const int k_offset = kx + (ky*dim);
+						out[out_offset].red   += kernel[k_offset] * in[in_offset].red;
+						out[out_offset].green += kernel[k_offset] * in[in_offset].green;
+						out[out_offset].blue  += kernel[k_offset] * in[in_offset].blue;
+					}
+				}
+			}
+		}
+
+
+
+
+
+        
+                            }                    
+                 	}
+};
+
+
+
 void apply_stencil(const int radius, const double stddev, const int rows, const int cols, pixel * const in, pixel * const out) {
 	const int dim = radius*2+1;
 	double kernel[dim*dim];
@@ -90,7 +140,6 @@ void apply_stencil(const int radius, const double stddev, const int rows, const 
 	for(int i = 0; i < rows; ++i) {
 		for(int j = 0; j < cols; ++j) {
 			const int out_offset = i + (j*rows);
-			// For each pixel, do the stencil
 			for(int x = i - radius, kx = 0; x <= i + radius; ++x, ++kx) {
 				for(int y = j - radius, ky = 0; y <= j + radius; ++y, ++ky) {
 					if(x >= 0 && x < rows && y >= 0 && y < cols) {
@@ -141,7 +190,13 @@ int main( int argc, char* argv[] ) {
 	}
 	
 	// Do the stencil
-	apply_stencil(3, 32.0, rows, cols, imagePixels, outPixels);
+	const int dim = 7;
+	const double stddev = 32.0;
+	double kernel[dim*dim];
+	int r = rows;
+	int c = cols;
+	gaussian_kernel(dim,dim, stddev, kernel);
+	tbb::parallel_for(tbb::blocked_range<int>(0, rows), parallel_stencil(3, 32.0, r, c, imagePixels, outPixels, kernel));
 	
 	// Create an output image (same size as input)
 	Mat dest(rows, cols, CV_8UC3);
