@@ -92,20 +92,21 @@ class parallel_stencil {
 		int cols;
 		pixel * in;
 		pixel *out;
-		double kernel[9];
+		double kernel[];
 
                 parallel_stencil(int radius1, double stddev1, int rows1, int cols1, pixel * const in1, pixel * const out1, double kernel1[]) {
-			dim = radius1 * 2 + 1;			
-			kernel = kernel1; 
+			dim = radius1 * 2 + 1;			 
 			radius = radius1;
 			stddev = stddev1;
 			rows = rows1;
 			cols = cols1;
 			in = in1;
 			out = out1;
+			for(int i = 0; i < 9; i++) {
+				kernel[i] = kernel1[i];
+			}
 		 }
-                        void operator()(const tbb::blocked_range<int>& r) const {
-                  
+                        void operator()(const  tbb::blocked_range<int>& r) const {                  
                              for(int i = r.begin(); i!= r.end(); i++) {
  				for(int j = 0; j < cols; ++j) {
 				const int out_offset = i + (j*rows);
@@ -196,7 +197,7 @@ int main( int argc, char* argv[] ) {
 	int r = rows;
 	int c = cols;
 	gaussian_kernel(dim,dim, stddev, kernel);
-	tbb::parallel_for(tbb::blocked_range<int>(0, rows), parallel_stencil(3, 32.0, r, c, imagePixels, outPixels, kernel));
+	tbb::parallel_for(tbb::blocked_range<int>(0, rows),parallel_stencil(3, 32.0, r, c, imagePixels, outPixels, kernel));
 	
 	// Create an output image (same size as input)
 	Mat dest(rows, cols, CV_8UC3);
