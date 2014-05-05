@@ -114,18 +114,18 @@ void apply_stencil(const int radius, const double stddev, const int rows, const 
 void apply_prewitt_stencil(const int rows, const int cols, pixel * const in, pixel * const out) {
 	const int radius = 1;
 	const int dim = radius*2+1;
-	double kernelX[dim*dim];
-	double kernelY[dim*dim];
+	double xkern[dim*dim];
+	double ykern[dim*dim];
 	
-	prewittX_kernel(3, 3, kernelX);
-	prewittY_kernel(3, 3, kernelY);
+	prewittX_kernel(3, 3, xkern);
+	prewittY_kernel(3, 3, ykern);
 
 	#pragma omp parallel for
 	for(int i = 0; i < rows; ++i) {
 		for(int j = 0; j < cols; ++j) {
 			const int out_offset = i + (j*rows);
-			double intenseX = 0;
-			double intenseY = 0;
+			double xintense = 0;
+			double yintense = 0;
 
 			for(int x = i - radius, kx = 0; x <= i + radius; ++x, ++kx) {
 				for(int y = j - radius, ky = 0; y <= j + radius; ++y, ++ky) {
@@ -133,13 +133,13 @@ void apply_prewitt_stencil(const int rows, const int cols, pixel * const in, pix
 						const int in_offset = x + (y*rows);
 						const int k_offset = kx + (ky*dim);
 						
-						intenseX += kernelX[k_offset] * (in[in_offset].red + in[in_offset].green + in[in_offset].blue) / 3;
-						intenseY += kernelY[k_offset] * (in[in_offset].red + in[in_offset].green + in[in_offset].blue) / 3;
+						xintense += xkern[k_offset] * (in[in_offset].red + in[in_offset].green + in[in_offset].blue) / 3;
+						yintense += ykern[k_offset] * (in[in_offset].red + in[in_offset].green + in[in_offset].blue) / 3;
 					}
 				}
 			}
 			
-			double result = sqrt(intenseX * intenseX + intenseY * intenseY);
+			double result = sqrt(xintense * xintense + yintense * yintense);
 			out[out_offset].red = result;
 			out[out_offset].green = result;
 			out[out_offset].blue = result;
