@@ -8,7 +8,7 @@ As you learned through writing programs that didn't do what they were supposed t
 #  Problem Statement
 ################################################################################
 
-We have some broken programs. Use GDB to fix them
+We have some broken programs. Use IDB to fix them
 
 ################################################################################
 #  What to do
@@ -18,8 +18,8 @@ We have some broken programs. Use GDB to fix them
 
 git pull <teacher repo remote> master
 
-2. Build the codes and run with GDB
+2. Build the codes and run with IDB
 
 3. Fix the codes
 
-4. A note: you can absolutely solve this analytically. When the time comes for which you need to solve something in GDB, you'll be thankful you learned to do it in GDB.
+4. A note: you can absolutely solve this problem analytically. When the time when you need to solve something in IDB, you'll be thankful you learned to do it in IDB.

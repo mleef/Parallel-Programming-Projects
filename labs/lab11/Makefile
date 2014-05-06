@@ -1,9 +1,12 @@
 default: all
 
-all: badIndex
+all: badIndex tbbNotQuiteRight
 
 badIndex: badIndex.c
-	gcc -g -o badIndex badIndex.c -fopenmp
+	icc -g -o badIndex badIndex.c -fopenmp
+
+tbbNotQuiteRight: tbbNotQuiteRight.cpp
+	icpc -g -o tbb tbbNotQuiteRight.cpp -ltbb
 
 clean:
-	rm badIndex *.o 2>/dev/null
+	rm tbb badIndex *.o 2>/dev/null
