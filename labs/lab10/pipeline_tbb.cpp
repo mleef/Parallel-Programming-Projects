@@ -100,15 +100,14 @@ void debug()
 void ungarbleVideo(char** imgList, int numImgs) 
 {
 
-	Mat pixelsFrameReturn, rotateFrameReturn;
+	Mat frame, pixelsFrameReturn, rotateFrameReturn;
 	int current = 0;		
-        frame = imread(imgList[imgNum],CV_LOAD_IMAGE_COLOR);
 		
-	parallel_pipeline(16,
-	   	make_filter<void, int>(
+	tbb::parallel_pipeline(16,
+	   	tbb::make_filter<void, int>(
 			[&](flow_control& fc)-> int{
                 	if( current < numImgs ) {
-                    		return start++;
+                    		return current++;
                  	} 	else {
                     	fc.stop();
                     	return NULL;
@@ -117,12 +116,12 @@ void ungarbleVideo(char** imgList, int numImgs)
 		
 
 		) &
-		make_filter<int, Mat>(
+		tbb::make_filter<int, Mat>(
 			filter::parallel,
 			[](int current){return imread(imgList[current],CV_LOAD_IMAGE_COLOR);}
 		) &
 		
-		make_filter<Mat,Mat> (
+		tbb::make_filter<Mat,Mat> (
 			filter::parallel,
 			[](Mat frame) {
 					Mat brightFrameReturn;
@@ -131,7 +130,7 @@ void ungarbleVideo(char** imgList, int numImgs)
 			}
 		) &	
 
-		make_filter<Mat,Mat> (
+		tbb::make_filter<Mat,Mat> (
 			filter::parallel,
 			[](Mat frame) {
 					Mat contrastFrameReturn;
@@ -146,10 +145,10 @@ void ungarbleVideo(char** imgList, int numImgs)
 
 		
 
-	   decreaseBrightnessFilter(frame, brightFrameReturn);
-	   decreaseContrastFilter(brightFrameReturn, contrastFrameReturn);
-	   rearrangePixelsFilter(contrastFrameReturn, pixelsFrameReturn);
-	   rotateMatFilter(pixelsFrameReturn, rotateFrameReturn);
+	  // decreaseBrightnessFilter(frame, brightFrameReturn);
+	  // decreaseContrastFilter(brightFrameReturn, contrastFrameReturn);
+	  // rearrangePixelsFilter(contrastFrameReturn, pixelsFrameReturn);
+	  // rotateMatFilter(pixelsFrameReturn, rotateFrameReturn);
       imshow("Nuclear Fusion",pixelsFrameReturn);
       waitKey(1);
    }

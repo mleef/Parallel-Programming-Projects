@@ -116,7 +116,6 @@ void apply_prewitt_stencil(const int rows, const int cols, pixel * const in, pix
 	const int dim = radius*2+1;
 	double xkern[dim*dim];
 	double ykern[dim*dim];
-	
 	prewittX_kernel(3, 3, xkern);
 	prewittY_kernel(3, 3, ykern);
 
@@ -130,8 +129,9 @@ void apply_prewitt_stencil(const int rows, const int cols, pixel * const in, pix
 			for(int x = i - radius, kx = 0; x <= i + radius; ++x, ++kx) {
 				for(int y = j - radius, ky = 0; y <= j + radius; ++y, ++ky) {
 					if(x >= 0 && x < rows && y >= 0 && y < cols) {
-						const int in_offset = x + (y*rows);
+
 						const int k_offset = kx + (ky*dim);
+						const int in_offset = x + (y*rows);
 						
 						xintense += xkern[k_offset] * (in[in_offset].red + in[in_offset].green + in[in_offset].blue) / 3;
 						yintense += ykern[k_offset] * (in[in_offset].red + in[in_offset].green + in[in_offset].blue) / 3;
