@@ -23,6 +23,12 @@ static int* outArea;
 static int radius;
 static int sim_steps;
 
+int tp;
+
+
+
+
+
 // Returns the total number of particles descending from this call
 // and increments the count at the right location
 int walker(long int seed, int x, int y, int stepsremaining) {
@@ -49,6 +55,44 @@ int walker(long int seed, int x, int y, int stepsremaining) {
     return particles;
 }
 
+void setValue(int * a, int b) {
+	printf("Setting value of a to  %d \n", b);
+        a = &b;
+
+}
+
+
+class parallel_walk {
+      public:
+		int amount;
+		int coordPairs;
+		int * totParticles;
+		int * coords;
+		int sim_steps;
+                
+                parallel_walk(int a, int b, int * c, int d, int* e) {
+			amount = a;
+			coordPairs = b;
+			totParticles = c;
+			sim_steps = d;
+			coords = e;
+		}
+
+
+
+                void operator()(const tbb::blocked_range<int>& r) const {
+			int particles = 0;            	
+                	for(int i = r.begin(); i!= r.end(); i++) {
+               			for(int j=0;j<amount;j++) { 
+            				particles += walker(i+j, coords[i], coords[i+1], sim_steps);
+       		       		 }	 
+                        }
+
+			tp = particles;		
+                 }
+};
+
+
 int main(int argc, char** argv) {
     if(argc<6 || ((argc-4)%2 != 0)) {
         printf("Usage: %s <steps> <radius> <amount> <x1> <y1> ... <xN> <yN>\n",argv[0]);
@@ -68,12 +112,15 @@ int main(int argc, char** argv) {
     // Start initial walks
     printf("Starting the walks...\n");
     int totParticles = 0;
-    for(int i=0;i<coordPairs*2;i+=2) {
-        for(int j=0;j<amount;j++) {
-            totParticles += walker(i+j, coords[i], coords[i+1], sim_steps);
-        }
-    }
-    printf("Walks complete... finished with %d particles\n",totParticles);
+
+    tbb::parallel_for(tbb::blocked_range<int>(0, coordPairs, 2), parallel_walk(amount, coordPairs, &totParticles, sim_steps, coords));
+
+//    for(int i=0;i<coordPairs*2;i+=2) {
+//        for(int j=0;j<amount;j++) {
+//            totParticles += walker(i+j, coords[i], coords[i+1], sim_steps);
+//        }
+//    }
+    printf("Walks complete... finished with %d particles\n",tp);
    
     // Generate the output
     writeOutput(radius, outArea);
