@@ -5,6 +5,7 @@
 #include "tbb/pipeline.h"
 
 using namespace cv;
+using namespace tbb;
 
 //----Method Declarations
 static void ungarbleVideo(char**,int);
@@ -101,12 +102,15 @@ void ungarbleVideo(char** imgList, int numImgs)
 {
 
 	Mat frame, pixelsFrameReturn, rotateFrameReturn;
-	int current = 0;		
+	int current = 0;
+	char ** list = imgList;	
+	int num = numImgs;	
 		
-	tbb::parallel_pipeline(16,
-	   	tbb::make_filter<void, int>(
+	parallel_pipeline(4,
+	   	make_filter<void, int>(
+			filter::serial,
 			[&](flow_control& fc)-> int{
-                	if( current < numImgs ) {
+                	if( current < num ) {
                     		return current++;
                  	} 	else {
                     	fc.stop();
@@ -116,12 +120,12 @@ void ungarbleVideo(char** imgList, int numImgs)
 		
 
 		) &
-		tbb::make_filter<int, Mat>(
+		make_filter<int, Mat>(
 			filter::parallel,
-			[](int current){return imread(imgList[current],CV_LOAD_IMAGE_COLOR);}
+			[&](int current){return imread(list[current],CV_LOAD_IMAGE_COLOR);}
 		) &
 		
-		tbb::make_filter<Mat,Mat> (
+		make_filter<Mat,Mat> (
 			filter::parallel,
 			[](Mat frame) {
 					Mat brightFrameReturn;
@@ -130,28 +134,45 @@ void ungarbleVideo(char** imgList, int numImgs)
 			}
 		) &	
 
-		tbb::make_filter<Mat,Mat> (
+		make_filter<Mat,Mat> (
 			filter::parallel,
 			[](Mat frame) {
 					Mat contrastFrameReturn;
 					decreaseContrastFilter(frame, contrastFrameReturn); 
 					return contrastFrameReturn;
 			}
-		);
+		) &
 
+		make_filter<Mat,Mat> (
+			filter::parallel,
+			[](Mat frame) {
+					Mat pixelsFrameReturn;
+					rearrangePixelsFilter(frame, pixelsFrameReturn); 
+					return pixelsFrameReturn;
+			}
+		) &
+
+		make_filter<Mat,Mat> (
+			filter::parallel,
+			[](Mat frame) {
+					Mat rotateFrameReturn;
+					rotateMatFilter(frame, rotateFrameReturn); 
+					return rotateFrameReturn;
 				
+			}
+		) &
 
+		make_filter<Mat,void> (
+			filter::serial,
+			[](Mat frame) {
+ 				imshow("Nuclear Fusion",frame);	
+				waitKey(1);				
+			}
+		)
+	);	
 
-
-		
-
-	  // decreaseBrightnessFilter(frame, brightFrameReturn);
-	  // decreaseContrastFilter(brightFrameReturn, contrastFrameReturn);
-	  // rearrangePixelsFilter(contrastFrameReturn, pixelsFrameReturn);
-	  // rotateMatFilter(pixelsFrameReturn, rotateFrameReturn);
-      imshow("Nuclear Fusion",pixelsFrameReturn);
-      waitKey(1);
-   }
+   
+   
 }
 
 
